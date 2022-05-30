@@ -1,11 +1,10 @@
 import React from 'react';
 import {
-  View,
   TouchableWithoutFeedback,
   StyleSheet,
-  useColorScheme,
   I18nManager,
 } from 'react-native';
+import { darkly, DarklyView } from 'rn-darkly';
 import { RMotionView, rmotion } from 'rmotion';
 import { ShadowView } from '@liuyunjs/react-native-simple-shadow-view';
 import { useReactionState } from '@liuyunjs/hooks/lib/useReactionState';
@@ -17,7 +16,9 @@ export type SwitchProps = {
   onChange?: (checked: boolean) => void;
 };
 
-const RMotionShadowView = rmotion(ShadowView);
+const DarklyRMotionShadowView = rmotion(darkly(ShadowView, 'style'));
+
+const DarklyRMotionView = darkly(RMotionView, 'style');
 
 const config = { duration: 200 };
 
@@ -27,7 +28,6 @@ const Switch: React.FC<SwitchProps> = ({
   onChange,
   checked: checkedInput,
 }) => {
-  const isDark = useColorScheme?.() === 'dark';
   const [checked, setChecked] = useReactionState(!!checkedInput);
 
   return (
@@ -37,37 +37,45 @@ const Switch: React.FC<SwitchProps> = ({
         setChecked(!checked);
         onChange?.(!checked);
       }}>
-      <View
+      <DarklyView
+        dark_style={[
+          styles.darkContainer,
+          checked && { backgroundColor: tintColor },
+        ]}
         style={[
           styles.container,
-          isDark && styles.darkContainer,
           checked && { backgroundColor: tintColor },
           disabled && styles.disabled,
         ]}>
-        <RMotionView
+        <DarklyRMotionView
+          dark_style={styles.darkTrack}
           config={config}
           animate={{
             scale: +!checked,
           }}
-          style={[styles.track, isDark && styles.darkTrack]}
+          style={styles.track}
         />
-        <RMotionShadowView
+        <DarklyRMotionShadowView
+          dark_style={styles.darkThumb}
           config={config}
           animate={{
             translateX: checked ? (I18nManager.isRTL ? -20 : 20) : 0,
           }}
-          style={[styles.thumb, isDark && styles.darkThumb]}
+          style={styles.thumb}
         />
-      </View>
+      </DarklyView>
     </TouchableWithoutFeedback>
   );
 };
 
-Switch.defaultProps = {
+const DarklySwitch = darkly(Switch, 'tintColor');
+
+DarklySwitch.defaultProps = {
   tintColor: '#4dd865',
+  dark_tintColor: '#297435',
 };
 
-const MemoSwitch = React.memo(Switch);
+const MemoSwitch = React.memo(DarklySwitch);
 
 export { MemoSwitch as Switch };
 
@@ -119,7 +127,7 @@ const styles = StyleSheet.create({
 
   darkThumb: {
     backgroundColor: '#000',
-    shadowColor: '#fff',
+    shadowColor: '#ccc',
     shadowOpacity: 0.21,
   },
 });
